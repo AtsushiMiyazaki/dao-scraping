@@ -1,4 +1,4 @@
-import boto3
+# import boto3
 import json
 import logging
 import os
@@ -7,16 +7,17 @@ from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
 
 from coinmarketcap import CoinMarketCap
+from cointelegraph import CoinTelegraph
  
 # CoinTelegraph
 # CoinDesk
 # CryptoNews
 # CCN
 
-# HOOK_URL = os.environ['hookUrl']
-# SLACK_CHANNEL = os.environ['slackChannel']
+HOOK_URL = os.environ['hookUrl']
+# IOST_CHANNEL = os.environ['slackChannel']
+DAO_CHANNEL = os.environ['dao']
 
-HOOK_URL = 'https://hooks.slack.com/services/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'
 SLACK_CHANNEL = 'report-test'
 
 logger = logging.getLogger()
@@ -25,7 +26,8 @@ logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
     logger.info("Event: " + str(event))
-    sendToSlack(CoinMarketCap(HOOK_URL, SLACK_CHANNEL))
+    # sendToSlack(CoinMarketCap(HOOK_URL, SLACK_CHANNEL))
+    sendToSlack(CoinTelegraph(DAO_CHANNEL))
     
 
 
