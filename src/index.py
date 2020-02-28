@@ -15,7 +15,7 @@ from cointelegraph import CoinTelegraph
 # CCN
 
 HOOK_URL = os.environ['hookUrl']
-# IOST_CHANNEL = os.environ['slackChannel']
+IOST_CHANNEL = os.environ['slackChannel']
 DAO_CHANNEL = os.environ['dao']
 
 SLACK_CHANNEL = 'report-test'
@@ -26,7 +26,7 @@ logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
     logger.info("Event: " + str(event))
-    # sendToSlack(CoinMarketCap(HOOK_URL, SLACK_CHANNEL))
+    sendToSlack(CoinMarketCap(HOOK_URL, IOST_CHANNEL))
     sendToSlack(CoinTelegraph(DAO_CHANNEL))
     
 
@@ -42,6 +42,3 @@ def sendToSlack(message):
         logger.info("Request failed: %d %s", e.code, e.reason)
     except URLError as e:
         logger.info("Server connection failed: %s", e.reason)
-
-
-lambda_handler('', '')

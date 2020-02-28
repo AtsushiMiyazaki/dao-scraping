@@ -1,5 +1,4 @@
 import logging
-import chromedriver_binary
 import csv
 
 from bs4 import BeautifulSoup
@@ -7,15 +6,20 @@ from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
 from operator import itemgetter
 from selenium import webdriver
+from filehandler import FetchFileFromS3, WriteFileToS3
 
-# HOOK_URL = 'https://hooks.slack.com/services/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'
-# SLACK_CHANNEL = 'report-test'
+CT_CSV='cointelegraph.csv'
 
 def CoinTelegraph(channel):
     url = "https://cointelegraph.com/search?query=dao"
     options = webdriver.ChromeOptions()
+    options.binary_location = "/opt/headless/lib/bin/headless-chromium"
     options.add_argument('--headless')
-    browser = webdriver.Chrome("./chromedriver_binary/chromedriver", options=options)
+    options.add_argument('--no-sandbox')
+    options.add_argument("--single-process")
+    options.add_argument('--disable-dev-shm-usage')
+
+    browser = webdriver.Chrome(executable_path="./chromedriver_binary/chromedriver", options=options)
     browser.get(url)
     html = browser.page_source
     soup = BeautifulSoup(html, 'html.parser')
@@ -29,25 +33,24 @@ def CoinTelegraph(channel):
             title = article.h2.a.string
             articles.append((link, title))
 
-        except:
+        except Exception as e:
+            logging.error(e)
             pass
 
-    history = articleHistory()
+    history = FetchFileFromS3(CT_CSV)
     newArticles = []
 
     for article in articles:
         if len(newArticles) == 3:
             break
-        
         for his in history:
             if article[0] == his[0]:
                 break
         else:
-            print(article)
             newArticles.append(article)
 
+    WriteFileToS3(newArticles + history, CT_CSV)
 
-    writeCSV(newArticles)
     message = f"""　
     ====================
       :postal_horn:  *CoinTelegraph* :postal_horn:
@@ -74,17 +77,4 @@ def CoinTelegraph(channel):
         'text': message
     }
 
-def articleHistory():
-    history = []
-    with open('./some.csv') as f:
-        reader = csv.reader(f)
-        for line in reader:
-            history.append(line)
-
-    return history
-
-
-def writeCSV(history):
-    with open('./some.csv', 'a') as f:
-        writer = csv.writer(f, lineterminator='\n')
-        writer.writerows(history) 
+# CoinTelegraph('report-test')
